@@ -30,7 +30,7 @@ var host_blacklist = []*regexp.Regexp{
 }
 
 var path_suffix_blacklist = []string{
-	"favicon.ico",
+	".ico",
 	".jpg",
 	".jpeg",
 	".png",
