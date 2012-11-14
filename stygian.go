@@ -38,6 +38,7 @@ var path_suffix_blacklist = []string{
 	".css",
 	".js",
 	".flv",
+	".woff",
 	"crossdomain.xml",
 	"ad_iframe.html",
 }
