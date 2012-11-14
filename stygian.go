@@ -16,7 +16,8 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	if resp.StatusCode == 200 {
 		contentType := resp.Header.Get("Content-Type")
 		if strings.HasPrefix(contentType, "text/") {
-			if strings.HasPrefix(contentType, "text/css") {
+			if strings.HasPrefix(contentType, "text/css") || 
+				strings.HasPrefix(contentType, "text/javascript") {
 				return resp
 			}
 			// full response with a body. save it, index it, etc.
