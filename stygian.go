@@ -39,6 +39,12 @@ var host_blacklist = []*regexp.Regexp{
 	regexp.MustCompile("mint.com"),
 	regexp.MustCompile("chase.com"),
 	regexp.MustCompile("ingdirect.com"),
+	regexp.MustCompile("s.amazon-adsystem.com"),
+	regexp.MustCompile("adprimemedia.com"),
+	regexp.MustCompile("admeld.lucidmedia.com"),
+	regexp.MustCompile("admeld.com"),
+	regexp.MustCompile(".adap.tv"),
+	regexp.MustCompile("atdmt.com"),
 }
 
 var path_suffix_blacklist = []string{
@@ -54,6 +60,8 @@ var path_suffix_blacklist = []string{
 	".swf",
 	"crossdomain.xml",
 	"ad_iframe.html",
+	"reader/api/0/edit-tag",
+	"reader/api/0/token",
 }
 
 type BodyHandler struct {
