@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	zmq "github.com/alecthomas/gozmq"
 	"github.com/elazarl/goproxy"
 	"io"
 	"log"
@@ -10,6 +12,16 @@ import (
 	"regexp"
 	"strings"
 )
+
+var PUB_SOCKET = "tcp://*:6666"
+var pubsocket zmq.Socket
+
+type message struct {
+	URL string `json:"url"`
+	Status int `json:"status"`
+	ContentType string `json:"content_type"`
+	Body string `json:"body"`
+}
 
 var host_blacklist = []*regexp.Regexp{
 	regexp.MustCompile("localhost.*"),
@@ -39,6 +51,7 @@ var path_suffix_blacklist = []string{
 	".js",
 	".flv",
 	".woff",
+	".swf",
 	"crossdomain.xml",
 	"ad_iframe.html",
 }
@@ -62,8 +75,9 @@ func (c *BodyHandler) Read(b []byte) (n int, err error) {
 func (c *BodyHandler) Close() error {
 	contentType := c.Resp.Header.Get("Content-Type")
 	content := c.W.String()
-	fmt.Println(content)
-	fmt.Println("--- 200", contentType, c.Resp.ContentLength, c.Resp.Request.URL, "---")
+	m := message{c.Resp.Request.URL.String(), 200, contentType, content}
+	b, _ := json.Marshal(m)
+	pubsocket.Send([]byte(b), 0)
 	return c.R.Close()
 }
 
@@ -101,23 +115,30 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 			}
 			buf := bytes.NewBuffer(make([]byte, 0, length))
 			resp.Body = &BodyHandler{resp.Body, buf, resp}
-			// log()
-			// save()
-			// index()
 		}
 	} else if resp.StatusCode == 304 {
 		// just a 304. don't need to re-index or save
 		// just log it. How to filter out only text/* types though?
 		// 304s don't include Content-Type headers...
 		fmt.Println("304", resp.Request.URL)
-		// log()
+		contentType := ""
+		content := ""
+		m := message{resp.Request.URL.String(), 304, contentType, content}
+		b, _ := json.Marshal(m)
+		pubsocket.Send([]byte(b), 0)
 	}
 	return resp
 }
 
 func main() {
+	context, _ := zmq.NewContext()
+	pubsocket, _ = context.NewSocket(zmq.PUB)
+	defer context.Close()
+	defer pubsocket.Close()
+	pubsocket.Bind(PUB_SOCKET)
+
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = false
 	proxy.OnResponse().DoFunc(filter)
-	log.Fatal(http.ListenAndServe(":8080", proxy))
+	log.Fatal(http.ListenAndServe("localhost:8080", proxy))
 }
