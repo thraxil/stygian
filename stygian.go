@@ -18,10 +18,10 @@ var PUB_SOCKET = "tcp://*:6666"
 var pubsocket zmq.Socket
 
 type message struct {
-	URL string `json:"url"`
-	Status int `json:"status"`
+	URL         string `json:"url"`
+	Status      int    `json:"status"`
 	ContentType string `json:"content_type"`
-	Body string `json:"body"`
+	Body        string `json:"body"`
 }
 
 var host_blacklist = []*regexp.Regexp{}
