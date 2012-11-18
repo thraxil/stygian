@@ -26,22 +26,7 @@ type message struct {
 
 var host_blacklist = []*regexp.Regexp{}
 
-var path_suffix_blacklist = []string{
-	".ico",
-	".jpg",
-	".jpeg",
-	".png",
-	".gif",
-	".css",
-	".js",
-	".flv",
-	".woff",
-	".swf",
-	"crossdomain.xml",
-	"ad_iframe.html",
-	"reader/api/0/edit-tag",
-	"reader/api/0/token",
-}
+var path_suffix_blacklist = []string{}
 
 type BodyHandler struct {
 	R    io.ReadCloser
@@ -70,6 +55,9 @@ func (c *BodyHandler) Close() error {
 
 func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	// ignore non 200/304s
+	if resp == nil {
+		return resp
+	}
 	if resp.StatusCode != 200 && resp.StatusCode != 304 {
 		return resp
 	}
@@ -129,6 +117,15 @@ func main() {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
 				host_blacklist = append(host_blacklist, regexp.MustCompile(line))
+			}
+		}
+	}
+
+	content, err = ioutil.ReadFile("suffix_blacklist.txt")
+	if err == nil {
+		for _, line := range strings.Split(string(content), "\n") {
+			if line != "" {
+				path_suffix_blacklist = append(path_suffix_blacklist, line)
 			}
 		}
 	}

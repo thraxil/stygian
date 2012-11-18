@@ -22,7 +22,7 @@ atdmt.com
 .*amazon-adsystem.com
 altfarm.mediaplex.com
 .*linkedin.com
-outbrain.com
+.*outbrain.com
 ads.cnn.com
 adsonar.com
 pulse360.com

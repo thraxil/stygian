@@ -1,0 +1,16 @@
+.ico
+.jpg
+.jpeg
+.png
+.gif
+.css
+.js
+.flv
+.woff
+.swf
+crossdomain.xml
+ad_iframe.html
+reader/api/0/edit-tag
+reader/api/0/token
+ad.html
+adx_remote.html
