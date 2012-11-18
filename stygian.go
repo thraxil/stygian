@@ -7,6 +7,7 @@ import (
 	zmq "github.com/alecthomas/gozmq"
 	"github.com/elazarl/goproxy"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -23,29 +24,7 @@ type message struct {
 	Body string `json:"body"`
 }
 
-var host_blacklist = []*regexp.Regexp{
-	regexp.MustCompile("localhost.*"),
-	regexp.MustCompile("127.0.0.1"),
-	regexp.MustCompile(".*thraxil.org"),
-	regexp.MustCompile(".*doubleclick.net"),
-	regexp.MustCompile(".*google-analytics.com"),
-	regexp.MustCompile(".*ccnmtl.columbia.edu"),
-	regexp.MustCompile(".*pagead\\d+.googlesyndication.com"),
-	regexp.MustCompile(".*adnxs.com"),
-	regexp.MustCompile(".*serving-sys.com"),
-	regexp.MustCompile("skimresources.com"),
-	regexp.MustCompile(".*facebook.com"),
-	regexp.MustCompile(".*gravatar.com"),
-	regexp.MustCompile("mint.com"),
-	regexp.MustCompile("chase.com"),
-	regexp.MustCompile("ingdirect.com"),
-	regexp.MustCompile("s.amazon-adsystem.com"),
-	regexp.MustCompile("adprimemedia.com"),
-	regexp.MustCompile("admeld.lucidmedia.com"),
-	regexp.MustCompile("admeld.com"),
-	regexp.MustCompile(".adap.tv"),
-	regexp.MustCompile("atdmt.com"),
-}
+var host_blacklist = []*regexp.Regexp{}
 
 var path_suffix_blacklist = []string{
 	".ico",
@@ -144,6 +123,15 @@ func main() {
 	defer context.Close()
 	defer pubsocket.Close()
 	pubsocket.Bind(PUB_SOCKET)
+
+	content, err := ioutil.ReadFile("domain_blacklist.txt")
+	if err == nil {
+		for _, line := range strings.Split(string(content), "\n") {
+			if line != "" {
+				host_blacklist = append(host_blacklist, regexp.MustCompile(line))
+			}
+		}
+	}
 
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = false
