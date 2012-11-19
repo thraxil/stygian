@@ -14,3 +14,6 @@ reader/api/0/edit-tag
 reader/api/0/token
 ad.html
 adx_remote.html
+static/button/button1.html
+static/button/button3.html
+
