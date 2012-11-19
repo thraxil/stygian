@@ -42,3 +42,6 @@ realmedia.com
 auditude.com
 adblade.com
 cdn.turn.com
+pointroll.com
+redditmedia.com
+widgets.bufferapp.com
