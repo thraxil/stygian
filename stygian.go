@@ -54,20 +54,22 @@ func (c *BodyHandler) Close() error {
 }
 
 func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
-	// ignore non 200/304s
 	if resp == nil {
 		return resp
 	}
+	// ignore non 200/304s
 	if resp.StatusCode != 200 && resp.StatusCode != 304 {
 		return resp
 	}
 
+	// filter path suffixes first, since they're fast
 	for _, suffix := range path_suffix_blacklist {
 		if strings.HasSuffix(resp.Request.URL.Path, suffix) {
 			return resp
 		}
 	}
 
+	// then host regexps
 	for _, host := range host_blacklist {
 		if host.MatchString(resp.Request.URL.Host) {
 			return resp
