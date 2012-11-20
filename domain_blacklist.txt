@@ -45,3 +45,8 @@ cdn.turn.com
 pointroll.com
 redditmedia.com
 widgets.bufferapp.com
+adserver.revsci.net
+mediacdn.disqus.com
+adserver.teracent.net
+d.agkn.com
+zedo.com
