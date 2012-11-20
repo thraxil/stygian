@@ -51,4 +51,11 @@ mediacdn.disqus.com
 adserver.teracent.net
 d.agkn.com
 zedo.com
-
+img.mediaplex.com
+us.criteo.com
+33across.com
+247ilabs.com
+vop.sundaysky.com
+.*sharethis.com
+interclick.com
+tags.bluekai.com
