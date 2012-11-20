@@ -46,3 +46,9 @@ pointroll.com
 redditmedia.com
 widgets.bufferapp.com
 rubiconproject.com
+adserver.revsci.net
+mediacdn.disqus.com
+adserver.teracent.net
+d.agkn.com
+zedo.com
+
