@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	_ "fmt"
 	zmq "github.com/alecthomas/gozmq"
 	"github.com/elazarl/goproxy"
 	"io"
@@ -19,7 +19,6 @@ var pubsocket zmq.Socket
 
 type message struct {
 	URL         string `json:"url"`
-	Status      int    `json:"status"`
 	ContentType string `json:"content_type"`
 	Body        string `json:"body"`
 }
@@ -47,7 +46,7 @@ func (c *BodyHandler) Read(b []byte) (n int, err error) {
 func (c *BodyHandler) Close() error {
 	contentType := c.Resp.Header.Get("Content-Type")
 	content := c.W.String()
-	m := message{c.Resp.Request.URL.String(), 200, contentType, content}
+	m := message{c.Resp.Request.URL.String(), contentType, content}
 	b, _ := json.Marshal(m)
 	pubsocket.Send([]byte(b), 0)
 	return c.R.Close()
@@ -57,8 +56,8 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	if resp == nil {
 		return resp
 	}
-	// ignore non 200/304s
-	if resp.StatusCode != 200 && resp.StatusCode != 304 {
+	// ignore non 200s
+	if resp.StatusCode != 200 {
 		return resp
 	}
 
@@ -76,34 +75,23 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 		}
 	}
 
-	if resp.StatusCode == 200 {
-		contentType := resp.Header.Get("Content-Type")
-		if strings.HasPrefix(contentType, "text/") {
-			if strings.HasPrefix(contentType, "text/css") ||
-				strings.HasPrefix(contentType, "text/javascript") ||
-				strings.HasPrefix(contentType, "text/json") {
-				return resp
-			}
-			// full response with a body. save it, index it, etc.
-
-			length := resp.ContentLength
-			if length <= 0 {
-				length = 1024
-			}
-			buf := bytes.NewBuffer(make([]byte, 0, length))
-			resp.Body = &BodyHandler{resp.Body, buf, resp}
+	contentType := resp.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "text/") {
+		if strings.HasPrefix(contentType, "text/css") ||
+			strings.HasPrefix(contentType, "text/javascript") ||
+			strings.HasPrefix(contentType, "text/json") {
+			return resp
 		}
-	} else if resp.StatusCode == 304 {
-		// just a 304. don't need to re-index or save
-		// just log it. How to filter out only text/* types though?
-		// 304s don't include Content-Type headers...
-		fmt.Println("304", resp.Request.URL)
-		contentType := ""
-		content := ""
-		m := message{resp.Request.URL.String(), 304, contentType, content}
-		b, _ := json.Marshal(m)
-		pubsocket.Send([]byte(b), 0)
+		// full response with a body. save it, index it, etc.
+
+		length := resp.ContentLength
+		if length <= 0 {
+			length = 1024
+		}
+		buf := bytes.NewBuffer(make([]byte, 0, length))
+		resp.Body = &BodyHandler{resp.Body, buf, resp}
 	}
+
 	return resp
 }
 
