@@ -24,6 +24,7 @@ type message struct {
 }
 
 var host_blacklist = []*regexp.Regexp{}
+var full_blacklist = []*regexp.Regexp{}
 
 var path_suffix_blacklist = []string{}
 
@@ -75,6 +76,13 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 		}
 	}
 
+	// then run regexps on the full urls
+	for _, p := range full_blacklist {
+		if p.MatchString(resp.Request.URL.String()) {
+			return resp
+		}
+	}
+
 	contentType := resp.Header.Get("Content-Type")
 	if strings.HasPrefix(contentType, "text/") {
 		if strings.HasPrefix(contentType, "text/css") ||
@@ -107,6 +115,15 @@ func main() {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
 				host_blacklist = append(host_blacklist, regexp.MustCompile(line))
+			}
+		}
+	}
+
+	content, err = ioutil.ReadFile("full_blacklist.txt")
+	if err == nil {
+		for _, line := range strings.Split(string(content), "\n") {
+			if line != "" {
+				full_blacklist = append(full_blacklist, regexp.MustCompile(line))
 			}
 		}
 	}

@@ -1,0 +1,11 @@
+http://ad\..*
+http://www.youtube.com/embed/.*
+http://www.sevenstring.org/forum/spyhome.php.*
+http://www.reddit.com/static/.*
+.*tumblr.com/dashboard/iframe.*
+.*adpage.html
+http://www.stumbleupon.com/badge/.*
+.*doubleclick.net.*
+http://www.businessweek.com/dynamic_frames/ads.html.*
+.*/ads/.*
+.*ad-loader-frame.html.*
