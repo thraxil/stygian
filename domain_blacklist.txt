@@ -123,3 +123,9 @@ dg.specificclick.net
 amch.questionmarket.com
 .*livefyre.com
 .*levexis.com
+.*nexac.com
+.*.sharethrough.com
+.*c3tag.com
+.*specificclick.net
+product-ads-portal.amazon.com
+
