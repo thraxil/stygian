@@ -119,3 +119,8 @@ ad.auditude.com
 .*advanseads.com
 .*everestads.net
 .*jetpackdigital.com
+.*nexac.com
+.*.sharethrough.com
+.*c3tag.com
+.*specificclick.net
+product-ads-portal.amazon.com
