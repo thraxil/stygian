@@ -119,3 +119,7 @@ ad.auditude.com
 .*advanseads.com
 .*everestads.net
 .*jetpackdigital.com
+dg.specificclick.net
+amch.questionmarket.com
+.*livefyre.com
+.*levexis.com
