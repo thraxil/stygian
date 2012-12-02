@@ -128,4 +128,4 @@ amch.questionmarket.com
 .*c3tag.com
 .*specificclick.net
 product-ads-portal.amazon.com
-
+.*huluim.com

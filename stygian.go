@@ -57,28 +57,10 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	if resp == nil {
 		return resp
 	}
-	// ignore non 200s
-	if resp.StatusCode != 200 {
-		return resp
-	}
 
 	// filter path suffixes first, since they're fast
 	for _, suffix := range path_suffix_blacklist {
 		if strings.HasSuffix(resp.Request.URL.Path, suffix) {
-			return resp
-		}
-	}
-
-	// then host regexps
-	for _, host := range host_blacklist {
-		if host.MatchString(resp.Request.URL.Host) {
-			return resp
-		}
-	}
-
-	// then run regexps on the full urls
-	for _, p := range full_blacklist {
-		if p.MatchString(resp.Request.URL.String()) {
 			return resp
 		}
 	}
@@ -101,6 +83,27 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	}
 
 	return resp
+}
+
+func StatusIs(status int) goproxy.RespCondition {
+	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+		return resp.StatusCode == status
+	})
+}
+
+
+func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
+	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
+		for _, re := range res {
+			result := re.MatchString(req.URL.Path) ||
+				re.MatchString(req.URL.Host+req.URL.Path)
+			if result {
+				// short-circuit
+				return result
+			}
+		}
+		return false
+	}
 }
 
 func main() {
@@ -139,6 +142,10 @@ func main() {
 
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = false
-	proxy.OnResponse().DoFunc(filter)
+	proxy.OnResponse(
+		StatusIs(200),
+		goproxy.Not(goproxy.ReqHostMatches(host_blacklist...)),
+		goproxy.Not(UrlMatchesAny(full_blacklist...)),
+		).DoFunc(filter)
 	log.Fatal(http.ListenAndServe("localhost:8080", proxy))
 }
