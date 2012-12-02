@@ -23,11 +23,6 @@ type message struct {
 	Body        string `json:"body"`
 }
 
-var host_blacklist = []*regexp.Regexp{}
-var full_blacklist = []*regexp.Regexp{}
-
-var path_suffix_blacklist = []string{}
-
 type BodyHandler struct {
 	R    io.ReadCloser
 	W    *bytes.Buffer
@@ -58,13 +53,6 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 		return resp
 	}
 
-	// filter path suffixes first, since they're fast
-	for _, suffix := range path_suffix_blacklist {
-		if strings.HasSuffix(resp.Request.URL.Path, suffix) {
-			return resp
-		}
-	}
-
 	contentType := resp.Header.Get("Content-Type")
 	if strings.HasPrefix(contentType, "text/") {
 		if strings.HasPrefix(contentType, "text/css") ||
@@ -85,12 +73,22 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	return resp
 }
 
+func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
+	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
+		for _, suffix := range suffixes {
+			if strings.HasSuffix(req.URL.Path, suffix) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 func StatusIs(status int) goproxy.RespCondition {
 	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
 		return resp.StatusCode == status
 	})
 }
-
 
 func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
@@ -107,11 +105,16 @@ func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 }
 
 func main() {
+	var host_blacklist = []*regexp.Regexp{}
+	var full_blacklist = []*regexp.Regexp{}
+	var path_suffix_blacklist = []string{}
+
 	context, _ := zmq.NewContext()
 	pubsocket, _ = context.NewSocket(zmq.PUB)
 	defer context.Close()
 	defer pubsocket.Close()
 	pubsocket.Bind(PUB_SOCKET)
+
 
 	content, err := ioutil.ReadFile("domain_blacklist.txt")
 	if err == nil {
@@ -144,6 +147,7 @@ func main() {
 	proxy.Verbose = false
 	proxy.OnResponse(
 		StatusIs(200),
+		goproxy.Not(UrlSuffixMatches(path_suffix_blacklist...)),
 		goproxy.Not(goproxy.ReqHostMatches(host_blacklist...)),
 		goproxy.Not(UrlMatchesAny(full_blacklist...)),
 		).DoFunc(filter)
