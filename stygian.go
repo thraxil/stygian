@@ -86,6 +86,9 @@ func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 
 func StatusIs(status int) goproxy.RespCondition {
 	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+		if resp == nil {
+			return false
+		}
 		return resp.StatusCode == status
 	})
 }
