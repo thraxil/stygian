@@ -83,6 +83,9 @@ func SaveCopyToHarken(resp *http.Response,
 	return resp
 }
 
+// True for any text/* content type except a couple
+// specific exceptions that generally indicate things
+// we don't care about (css/js/json)
 func TextButNotCode() goproxy.RespCondition {
 	return goproxy.RespConditionFunc(
 		func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
@@ -97,6 +100,9 @@ func TextButNotCode() goproxy.RespCondition {
 		})
 }
 
+// Check for plain string matches on the paths, starting from the ends
+// Useful since you often care about file extensions and filenames
+// rather than the paths leading up to them
 func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
 		for _, suffix := range suffixes {
@@ -108,6 +114,7 @@ func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 	}
 }
 
+// Filter out only requests with the given response status code
 func StatusIs(status int) goproxy.RespCondition {
 	return goproxy.RespConditionFunc(
 		func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
@@ -118,6 +125,7 @@ func StatusIs(status int) goproxy.RespCondition {
 		})
 }
 
+// returns true if the URL matches any of the given regexps
 func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
 		for _, re := range res {
@@ -132,6 +140,8 @@ func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 	}
 }
 
+// read in a list of regexps, one per line from a file
+// ignoring empty lines
 func readFileToRegexpList(filename string) []*regexp.Regexp {
 	var regexp_list = []*regexp.Regexp{}
 	content, err := ioutil.ReadFile(filename)
