@@ -24,9 +24,9 @@ type message struct {
 }
 
 type ConfigData struct {
-	SubmitURL string `json:"submit_url"`
+	SubmitURL           string `json:"submit_url"`
 	DomainBlacklistFile string `json:"domain_blacklist_file"`
-	FullBlacklistFile string `json:"full_blacklist_file"`
+	FullBlacklistFile   string `json:"full_blacklist_file"`
 	SuffixBlacklistFile string `json:"suffix_blacklist_file"`
 }
 
@@ -64,7 +64,8 @@ func submit(url_visited, content_type, body string) {
 	// TODO: log errors
 }
 
-func SaveCopyToHarken(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+func SaveCopyToHarken(resp *http.Response,
+	ctx *goproxy.ProxyCtx) *http.Response {
 	if resp == nil {
 		return resp
 	}
@@ -80,14 +81,17 @@ func SaveCopyToHarken(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 }
 
 func TextButNotCode() goproxy.RespCondition {
-	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
-		contentType := resp.Header.Get("Content-Type")
-		if !strings.HasPrefix(contentType, "text/") {
-			return false
-		}
-		r := strings.HasPrefix(contentType, "text/css") || strings.HasPrefix(contentType, "text/javascript") || strings.HasPrefix(contentType, "text/json")
-		return !r
-	})
+	return goproxy.RespConditionFunc(
+		func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+			contentType := resp.Header.Get("Content-Type")
+			if !strings.HasPrefix(contentType, "text/") {
+				return false
+			}
+			r := strings.HasPrefix(contentType, "text/css") ||
+				strings.HasPrefix(contentType, "text/javascript") ||
+				strings.HasPrefix(contentType, "text/json")
+			return !r
+		})
 }
 
 func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
@@ -102,12 +106,13 @@ func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 }
 
 func StatusIs(status int) goproxy.RespCondition {
-	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
-		if resp == nil {
-			return false
-		}
-		return resp.StatusCode == status
-	})
+	return goproxy.RespConditionFunc(
+		func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+			if resp == nil {
+				return false
+			}
+			return resp.StatusCode == status
+		})
 }
 
 func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
