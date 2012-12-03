@@ -48,7 +48,7 @@ func (c *BodyHandler) Close() error {
 	return c.R.Close()
 }
 
-func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+func SaveCopyToHarken(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 	if resp == nil {
 		return resp
 	}
@@ -72,7 +72,6 @@ func TextButNotCode() goproxy.RespCondition {
 		return strings.HasPrefix(contentType, "text/css") || strings.HasPrefix(contentType, "text/javascript") || strings.HasPrefix(contentType, "text/json")
 	})
 }
-
 
 func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
@@ -119,7 +118,6 @@ func main() {
 	defer pubsocket.Close()
 	pubsocket.Bind(PUB_SOCKET)
 
-
 	content, err := ioutil.ReadFile("domain_blacklist.txt")
 	if err == nil {
 		for _, line := range strings.Split(string(content), "\n") {
@@ -155,6 +153,6 @@ func main() {
 		goproxy.Not(UrlSuffixMatches(path_suffix_blacklist...)),
 		goproxy.Not(goproxy.ReqHostMatches(host_blacklist...)),
 		goproxy.Not(UrlMatchesAny(full_blacklist...)),
-		).DoFunc(filter)
+	).DoFunc(SaveCopyToHarken)
 	log.Fatal(http.ListenAndServe("localhost:8080", proxy))
 }
