@@ -53,25 +53,26 @@ func filter(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
 		return resp
 	}
 
-	contentType := resp.Header.Get("Content-Type")
-	if strings.HasPrefix(contentType, "text/") {
-		if strings.HasPrefix(contentType, "text/css") ||
-			strings.HasPrefix(contentType, "text/javascript") ||
-			strings.HasPrefix(contentType, "text/json") {
-			return resp
-		}
-		// full response with a body. save it, index it, etc.
-
-		length := resp.ContentLength
-		if length <= 0 {
-			length = 1024
-		}
-		buf := bytes.NewBuffer(make([]byte, 0, length))
-		resp.Body = &BodyHandler{resp.Body, buf, resp}
+	length := resp.ContentLength
+	if length <= 0 {
+		length = 1024
 	}
+	buf := bytes.NewBuffer(make([]byte, 0, length))
+	resp.Body = &BodyHandler{resp.Body, buf, resp}
 
 	return resp
 }
+
+func TextButNotCode() goproxy.RespCondition {
+	return goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+		contentType := resp.Header.Get("Content-Type")
+		if !strings.HasPrefix(contentType, "text/") {
+			return false
+		}
+		return strings.HasPrefix(contentType, "text/css") || strings.HasPrefix(contentType, "text/javascript") || strings.HasPrefix(contentType, "text/json")
+	})
+}
+
 
 func UrlSuffixMatches(suffixes ...string) goproxy.ReqConditionFunc {
 	return func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
@@ -150,6 +151,7 @@ func main() {
 	proxy.Verbose = false
 	proxy.OnResponse(
 		StatusIs(200),
+		TextButNotCode(),
 		goproxy.Not(UrlSuffixMatches(path_suffix_blacklist...)),
 		goproxy.Not(goproxy.ReqHostMatches(host_blacklist...)),
 		goproxy.Not(UrlMatchesAny(full_blacklist...)),
