@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	_ "fmt"
+	"fmt"
 	"github.com/elazarl/goproxy"
 	"io"
 	"io/ioutil"
@@ -28,6 +28,7 @@ type ConfigData struct {
 	DomainBlacklistFile string `json:"domain_blacklist_file"`
 	FullBlacklistFile   string `json:"full_blacklist_file"`
 	SuffixBlacklistFile string `json:"suffix_blacklist_file"`
+	Port int `json:"port"`
 }
 
 type BodyHandler struct {
@@ -49,6 +50,8 @@ func (c *BodyHandler) Read(b []byte) (n int, err error) {
 func (c *BodyHandler) Close() error {
 	contentType := c.Resp.Header.Get("Content-Type")
 	content := c.W.String()
+	// TODO: pool of workers instead of launching
+	// a goroutine for each. or at least add timeouts
 	go submit(c.Resp.Request.URL.String(),
 		contentType,
 		content)
@@ -188,5 +191,5 @@ func main() {
 		goproxy.Not(goproxy.ReqHostMatches(host_blacklist...)),
 		goproxy.Not(UrlMatchesAny(full_blacklist...)),
 	).DoFunc(SaveCopyToHarken)
-	log.Fatal(http.ListenAndServe("localhost:8080", proxy))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", f.Port), proxy))
 }
