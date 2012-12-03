@@ -2,20 +2,18 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	_ "fmt"
-	zmq "github.com/alecthomas/gozmq"
 	"github.com/elazarl/goproxy"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 )
 
-var PUB_SOCKET = "tcp://*:6666"
-var pubsocket zmq.Socket
+var HARKEN_SUBMIT_URL = "http://harken.thraxil.org/add/"
 
 type message struct {
 	URL         string `json:"url"`
@@ -42,10 +40,19 @@ func (c *BodyHandler) Read(b []byte) (n int, err error) {
 func (c *BodyHandler) Close() error {
 	contentType := c.Resp.Header.Get("Content-Type")
 	content := c.W.String()
-	m := message{c.Resp.Request.URL.String(), contentType, content}
-	b, _ := json.Marshal(m)
-	pubsocket.Send([]byte(b), 0)
+	go submit(c.Resp.Request.URL.String(),
+		contentType,
+		content)
 	return c.R.Close()
+}
+
+func submit(url_visited, content_type, body string) {
+	http.PostForm(HARKEN_SUBMIT_URL,
+		url.Values{"url": {url_visited},
+			"content_type": {content_type},
+			"body":         {body},
+		})
+	// TODO: log errors
 }
 
 func SaveCopyToHarken(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
@@ -111,12 +118,6 @@ func main() {
 	var host_blacklist = []*regexp.Regexp{}
 	var full_blacklist = []*regexp.Regexp{}
 	var path_suffix_blacklist = []string{}
-
-	context, _ := zmq.NewContext()
-	pubsocket, _ = context.NewSocket(zmq.PUB)
-	defer context.Close()
-	defer pubsocket.Close()
-	pubsocket.Bind(PUB_SOCKET)
 
 	content, err := ioutil.ReadFile("domain_blacklist.txt")
 	if err == nil {
