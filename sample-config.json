@@ -1,0 +1,6 @@
+{"submit_url": "http://example.com/add/",
+ "domain_blacklist_file": "domain_blacklist.txt",
+ "full_blacklist_file": "full_blacklist.txt",
+ "suffix_blacklist_file": "suffix_blacklist.txt",
+ "port": 8080
+	}
