@@ -28,7 +28,7 @@ type ConfigData struct {
 	DomainBlacklistFile string `json:"domain_blacklist_file"`
 	FullBlacklistFile   string `json:"full_blacklist_file"`
 	SuffixBlacklistFile string `json:"suffix_blacklist_file"`
-	Port int `json:"port"`
+	Port                int    `json:"port"`
 }
 
 type BodyHandler struct {
@@ -132,6 +132,19 @@ func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 	}
 }
 
+func readFileToRegexpList(filename string) []*regexp.Regexp {
+	var regexp_list = []*regexp.Regexp{}
+	content, err := ioutil.ReadFile(filename)
+	if err == nil {
+		for _, line := range strings.Split(string(content), "\n") {
+			if line != "" {
+				regexp_list = append(regexp_list, regexp.MustCompile(line))
+			}
+		}
+	}
+	return regexp_list
+}
+
 func main() {
 	// read the config file
 	var configfile string
@@ -151,29 +164,11 @@ func main() {
 
 	SUBMIT_URL = f.SubmitURL
 
-	var host_blacklist = []*regexp.Regexp{}
-	var full_blacklist = []*regexp.Regexp{}
+	var host_blacklist = readFileToRegexpList(f.DomainBlacklistFile)
+	var full_blacklist = readFileToRegexpList(f.FullBlacklistFile)
 	var path_suffix_blacklist = []string{}
 
-	content, err := ioutil.ReadFile(f.DomainBlacklistFile)
-	if err == nil {
-		for _, line := range strings.Split(string(content), "\n") {
-			if line != "" {
-				host_blacklist = append(host_blacklist, regexp.MustCompile(line))
-			}
-		}
-	}
-
-	content, err = ioutil.ReadFile(f.FullBlacklistFile)
-	if err == nil {
-		for _, line := range strings.Split(string(content), "\n") {
-			if line != "" {
-				full_blacklist = append(full_blacklist, regexp.MustCompile(line))
-			}
-		}
-	}
-
-	content, err = ioutil.ReadFile(f.SuffixBlacklistFile)
+	content, err := ioutil.ReadFile(f.SuffixBlacklistFile)
 	if err == nil {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
