@@ -129,3 +129,4 @@ amch.questionmarket.com
 .*specificclick.net
 product-ads-portal.amazon.com
 .*huluim.com
+.*casalemedia.com

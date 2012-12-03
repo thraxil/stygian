@@ -25,6 +25,9 @@ type message struct {
 
 type ConfigData struct {
 	SubmitURL string `json:"submit_url"`
+	DomainBlacklistFile string `json:"domain_blacklist_file"`
+	FullBlacklistFile string `json:"full_blacklist_file"`
+	SuffixBlacklistFile string `json:"suffix_blacklist_file"`
 }
 
 type BodyHandler struct {
@@ -82,7 +85,8 @@ func TextButNotCode() goproxy.RespCondition {
 		if !strings.HasPrefix(contentType, "text/") {
 			return false
 		}
-		return strings.HasPrefix(contentType, "text/css") || strings.HasPrefix(contentType, "text/javascript") || strings.HasPrefix(contentType, "text/json")
+		r := strings.HasPrefix(contentType, "text/css") || strings.HasPrefix(contentType, "text/javascript") || strings.HasPrefix(contentType, "text/json")
+		return !r
 	})
 }
 
@@ -143,7 +147,7 @@ func main() {
 	var full_blacklist = []*regexp.Regexp{}
 	var path_suffix_blacklist = []string{}
 
-	content, err := ioutil.ReadFile("domain_blacklist.txt")
+	content, err := ioutil.ReadFile(f.DomainBlacklistFile)
 	if err == nil {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
@@ -152,7 +156,7 @@ func main() {
 		}
 	}
 
-	content, err = ioutil.ReadFile("full_blacklist.txt")
+	content, err = ioutil.ReadFile(f.FullBlacklistFile)
 	if err == nil {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
@@ -161,7 +165,7 @@ func main() {
 		}
 	}
 
-	content, err = ioutil.ReadFile("suffix_blacklist.txt")
+	content, err = ioutil.ReadFile(f.SuffixBlacklistFile)
 	if err == nil {
 		for _, line := range strings.Split(string(content), "\n") {
 			if line != "" {
