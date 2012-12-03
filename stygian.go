@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"flag"
 	_ "fmt"
 	"github.com/elazarl/goproxy"
 	"io"
@@ -13,12 +15,16 @@ import (
 	"strings"
 )
 
-var HARKEN_SUBMIT_URL = "http://harken.thraxil.org/add/"
+var SUBMIT_URL string
 
 type message struct {
 	URL         string `json:"url"`
 	ContentType string `json:"content_type"`
 	Body        string `json:"body"`
+}
+
+type ConfigData struct {
+	SubmitURL string `json:"submit_url"`
 }
 
 type BodyHandler struct {
@@ -47,7 +53,7 @@ func (c *BodyHandler) Close() error {
 }
 
 func submit(url_visited, content_type, body string) {
-	http.PostForm(HARKEN_SUBMIT_URL,
+	http.PostForm(SUBMIT_URL,
 		url.Values{"url": {url_visited},
 			"content_type": {content_type},
 			"body":         {body},
@@ -115,6 +121,24 @@ func UrlMatchesAny(res ...*regexp.Regexp) goproxy.ReqConditionFunc {
 }
 
 func main() {
+	// read the config file
+	var configfile string
+	flag.StringVar(&configfile, "config", "./config.json", "JSON config file")
+	flag.Parse()
+
+	file, err := ioutil.ReadFile(configfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	f := ConfigData{}
+	err = json.Unmarshal(file, &f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	SUBMIT_URL = f.SubmitURL
+
 	var host_blacklist = []*regexp.Regexp{}
 	var full_blacklist = []*regexp.Regexp{}
 	var path_suffix_blacklist = []string{}
