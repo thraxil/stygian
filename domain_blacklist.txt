@@ -130,3 +130,14 @@ amch.questionmarket.com
 product-ads-portal.amazon.com
 .*huluim.com
 .*casalemedia.com
+mads.zdnet.com
+.*btrll.com
+core.videoegg.com
+ligertailpayment.appspot.com
+.*images-amazon.com
+rcm.amazon.com
+.*seamless.com
+.*.livefyre.com
+imgur.com
+.*quickmeme.com
+.*tidaltv.com
